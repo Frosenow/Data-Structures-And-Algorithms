@@ -1,0 +1,30 @@
+{
+    "Data": {
+      "input_file": "input.txt",
+      "input_format": "csv",
+      "output_file": "results.csv",
+      "output_format": "csv"
+    },
+    "Measurement": {
+      "measurements": 10,
+      "time_limit": 600000,
+      "precision": "ns"
+    },
+    "SortingAlgorithm1": {
+      "name": "BubbleSort",
+      "data_structure": "array"
+    },
+    "SortingAlgorithm1Measurements": {
+      "num_of_instances": 13,
+      "instances": [10, 20, 30, 40, 50, 75, 100, 150, 200, 350, 500, 750, 1000]
+    },
+    "SortingAlgorithm1Bounds": {
+      "upper_bound": "n^2",
+      "lower_bound": "n"
+    },
+    "Verification": {
+      "show_progress": true,
+      "show_sorted": true,
+      "create_charts": true
+    }
+  }
