@@ -3,6 +3,24 @@
 #include <sstream> 
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+std::vector<int> read_data(std::string filename){
+    std::ifstream file(filename); 
+    std::vector<int> data;
+    int number; 
+    char comma;
+    if(file.is_open()){
+        while(file >> number >> comma){
+            data.push_back(number);
+        }
+        file.close(); 
+    } else { 
+        std::cerr << "Error: Nie mozna otworzyc pliku: " << filename << '\n';
+    }
+    std::cout<< "Odczyt zakonczony..." << "\n";
+    return data; 
+}
 
 std::unordered_map<std::string, std::string> parse_config(std::string filename){
     std::ifstream config_file(filename);
@@ -47,20 +65,28 @@ std::unordered_map<std::string, std::string> parse_config(std::string filename){
     }
 }
 
-int main(){
-    // Oczyt pliku sterującego 
-    std::unordered_map<std::string, std::string> config = parse_config("config.ini");
-    
-    for (const auto& kv : config) {
-        std::cout << kv.first << " = " << kv.second << std::endl;
-        std::cout << std::endl; 
+std::vector<int> get_instances(std::string config){
+    std::vector<int> instances; 
+    std::string instance; 
+    std::stringstream ss(config);
+    while(std::getline(ss, instance, ',')){
+        instances.push_back(std::stoi(instance));
     }
+    return instances; 
+}
+
+int main(){
+    // Oczyt pliku sterującego i jego przetworzenie
+    std::unordered_map<std::string, std::string> config = parse_config("config.ini"); 
     
-    // Przetworzenie pliku sterującego i ustawienie zmiennych 
+    // Uzyskanie tablicy instancji problemu 
+    std::vector<int> instances = get_instances(config["SortingAlgorithm1Measurements.instances"]);
 
     // Odczyt danych z pliku 
+    std::vector<int> data = read_data(config["Data.input_file"]);
 
     // Przetwarzanie danych za pomoca wybranego algorytmu 
+
 
     // Zapis wyników do pliku 
 }
