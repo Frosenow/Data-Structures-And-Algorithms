@@ -6,6 +6,13 @@
 #include <vector>
 #include <chrono> 
 
+class Result {
+    public: 
+        std::vector<int> sorted_data;
+        double avg_duration; 
+        int num_of_instance; 
+};
+
 std::vector<int> read_data(std::string filename){
     std::ifstream file(filename); 
     std::vector<int> data;
@@ -17,10 +24,23 @@ std::vector<int> read_data(std::string filename){
         }
         file.close(); 
     } else { 
-        std::cerr << "Error: Nie mozna otworzyc pliku: " << filename << '\n';
+        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "Do odczytu\n";
     }
     std::cout<< "Odczyt zakonczony..." << "\n";
     return data; 
+}
+
+void save_data(const std::string filename, Result results){
+    std::ofstream file(filename, std::ios::app | std::ios::out);
+
+    if(file.is_open()){
+        file << results.avg_duration << ";" << results.num_of_instance << '\n'; 
+        std::cout << results.avg_duration << ";" << results.num_of_instance << '\n'; 
+        file.close();
+    } else {
+        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
+    }
+    std::cout<< "Zapis zakonczony..." << "\n";
 }
 
 std::unordered_map<std::string, std::string> parse_config(std::string filename){
@@ -93,11 +113,12 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
     return tab; 
 }
 
-// Funkcja sluza do badania algorytmu 
+// Funkcja sluzaca do badania algorytmu 
 auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision){
     long long total_duration = 0; 
     std::vector<int> sorted; 
-    // Wykonanie tego samego algorytmu X razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
+    std::unordered_map<std::string, std::string> results;
+    // Wykonanie tego samego algorytmu X-razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
     for(int i = 0; i < num_of_measurements; i++){
         auto start_timer = std::chrono::high_resolution_clock::now();
         
@@ -119,7 +140,12 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     // Wyliczenie sredniego czasu dla zadanej instancji problemu 
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
     std::cout << avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
-    return sorted; 
+
+    Result algorithm_result; 
+    algorithm_result.sorted_data = sorted; 
+    algorithm_result.avg_duration = avg_duration; 
+    algorithm_result.num_of_instance = instance.size(); 
+    return algorithm_result; 
 }
 
  
@@ -130,26 +156,26 @@ int main(){
     // Odczyt danych z pliku 
     std::vector<int> data = read_data(config["Data.input_file"]);
 
-    // Uzyskanie tablicy instancji problemu 
+    // Uzyskanie tablicy z instancjami problemu 
     std::vector<int> instances = get_instances(config["SortingAlgorithm1Measurements.instances"]);
 
-
     // Przetwarzanie danych za pomoca wybranego algorytmu 
-    // Algorytm uruchamiany X dla kazdego rozmiaru instancji 
-    std::vector<int> sorted; 
+    // Algorytm uruchamiany X-razy dla kazdego rozmiaru instancji  
     for(int i = 0; i < std::stoi(config["SortingAlgorithm1Measurements.num_of_instances"]); i++){
         // Podzielenie glownego problemu na wybrane instancje
         int size_of_instance = instances[i]; 
         std::vector<int> sub_vec = divide_instances(data, size_of_instance);
-        sorted = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"]);
+        auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"]);
 
         // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
         if(std::stoi(config["Verification.show_sorted"])){
         std::cout << "Dane po sortowaniu: " << "\n";
-        for(int i = 0; i < sorted.size(); i++){
-            std::cout<< sorted[i] << " ";
+        for(int i = 0; i < resultObj.sorted_data.size(); i++){
+            std::cout<< resultObj.sorted_data[i] << " ";
         }std::cout<<std::endl; 
     }
+        std::cout<<"CZAS: "<<resultObj.avg_duration<<'\n';
+        save_data(config["Data.output_file"], resultObj);
     }
     std::cout << "Pomiar zakonczony..." << std::endl;
 
