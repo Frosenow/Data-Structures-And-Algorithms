@@ -82,22 +82,28 @@ std::vector<int> divide_instances(std::vector<int> numbers, int size_of_instance
 }
 
 // Testowy algorytm
-void sortowanie_babelkowe(std::vector <int> tab)
+std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
 {
 	for(int i=0; i < tab.size(); i++)
 		for(int j=1; j < tab.size() - i; j++) //pętla wewnętrzna
 		if(tab[j-1]>tab[j])
 			//zamiana miejscami
 			std::swap(tab[j-1], tab[j]);
+
+    return tab; 
 }
 
 // Funkcja sluza do badania algorytmu 
 auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision){
     long long total_duration = 0; 
+    std::vector<int> sorted; 
     // Wykonanie tego samego algorytmu X razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
     for(int i = 0; i < num_of_measurements; i++){
         auto start_timer = std::chrono::high_resolution_clock::now();
-        sortowanie_babelkowe(instance);
+        
+        // Miejsce na badany algorytm:
+        sorted = sortowanie_babelkowe(instance);
+
         auto stop_timer = std::chrono::high_resolution_clock::now();
         if(precision == "ms"){
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer);
@@ -113,11 +119,13 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     // Wyliczenie sredniego czasu dla zadanej instancji problemu 
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
     std::cout << avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
+    return sorted; 
 }
 
+ 
 int main(){
     // Oczyt pliku sterującego i jego przetworzenie
-    std::unordered_map<std::string, std::string> config = parse_config("config.ini"); 
+    std::unordered_map<std::string, std::string> config = parse_config("config.ini");
 
     // Odczyt danych z pliku 
     std::vector<int> data = read_data(config["Data.input_file"]);
@@ -128,11 +136,20 @@ int main(){
 
     // Przetwarzanie danych za pomoca wybranego algorytmu 
     // Algorytm uruchamiany X dla kazdego rozmiaru instancji 
-    for(int i = 0; i < instances.size(); i++){
+    std::vector<int> sorted; 
+    for(int i = 0; i < std::stoi(config["SortingAlgorithm1Measurements.num_of_instances"]); i++){
         // Podzielenie glownego problemu na wybrane instancje
         int size_of_instance = instances[i]; 
         std::vector<int> sub_vec = divide_instances(data, size_of_instance);
-        solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"]);
+        sorted = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"]);
+
+        // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
+        if(std::stoi(config["Verification.show_sorted"])){
+        std::cout << "Dane po sortowaniu: " << "\n";
+        for(int i = 0; i < sorted.size(); i++){
+            std::cout<< sorted[i] << " ";
+        }std::cout<<std::endl; 
+    }
     }
     std::cout << "Pomiar zakonczony..." << std::endl;
 
