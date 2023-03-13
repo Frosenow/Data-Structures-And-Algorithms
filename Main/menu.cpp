@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono> 
+#include <iomanip>
 
 // Klasa zawierajaca informacje o analize algorytmu
 class Result {
@@ -60,6 +61,22 @@ void save_sorted(const std::string filename, Result results){
         std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
     }
     std::cout<< "Wynik algorytmu zapisany..." << "\n";
+}
+
+// Wyswietlanie stanu obliczen
+void print_progress(double progress) {
+    // Szerokosc paska progresu 
+    const int progressbar_width = 50;
+    // Okreslenie pozycji kursora  
+    int position = progress * progressbar_width;
+    std::cout << "STAN: ["; 
+    for(int i = 0; i < progressbar_width; i++){
+        if( i < position) 
+            std::cout << '#'; 
+        else 
+            std::cout << '.';
+    }
+    std::cout << "] " << std::setprecision(0) << std::fixed << (progress * 100) << '%' << std::endl;
 }
 
 // Przetwarzanie pliku konfiguracyjnego 
@@ -185,7 +202,6 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     std::cout << '\n' << "**************************************************************" << '\n';
     std::cout << "CZAS: " <<  avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
     std::cout << "CZAS CALKOWITY: " << total_duration << precision <<'\n';
-    std::cout << "**************************************************************" << '\n';
 
     Result algorithm_result; 
     algorithm_result.sorted_data = sorted; 
@@ -220,9 +236,13 @@ int main(){
             std::cout<< resultObj.sorted_data[i] << " ";
         }std::cout<<std::endl; 
     }
+        print_progress(static_cast<double>(i) / std::stoi(config["SortingAlgorithm1Measurements.num_of_instances"]));
+        std::cout << '\n' << "**************************************************************" << '\n';
         save_data(config["Data.output_file"], resultObj);
         if(std::stoi(config["Verification.save_sorted"]))
             save_sorted("output.txt", resultObj);
     }
+    print_progress(1);
     std::cout << "Pomiar zakonczony..." << std::endl;
+
 }
