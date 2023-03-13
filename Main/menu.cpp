@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono> 
 
+// Klasa zawierajaca informacje o analize algorytmu
 class Result {
     public: 
         std::vector<int> sorted_data;
@@ -13,6 +14,7 @@ class Result {
         int num_of_instance; 
 };
 
+// Odczyt danych 
 std::vector<int> read_data(std::string filename){
     std::ifstream file(filename); 
     std::vector<int> data;
@@ -30,12 +32,12 @@ std::vector<int> read_data(std::string filename){
     return data; 
 }
 
+// Zapis wyników do pliku
 void save_data(const std::string filename, Result results){
     std::ofstream file(filename, std::ios::app | std::ios::out);
 
     if(file.is_open()){
         file << results.avg_duration << ";" << results.num_of_instance << '\n'; 
-        std::cout << results.avg_duration << ";" << results.num_of_instance << '\n'; 
         file.close();
     } else {
         std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
@@ -43,6 +45,7 @@ void save_data(const std::string filename, Result results){
     std::cout<< "Zapis zakonczony..." << "\n";
 }
 
+// Przetwarzanie pliku konfiguracyjnego 
 std::unordered_map<std::string, std::string> parse_config(std::string filename){
     std::ifstream config_file(filename);
     std::string line; 
@@ -86,6 +89,7 @@ std::unordered_map<std::string, std::string> parse_config(std::string filename){
     }
 }
 
+// Wyluskanie tablicy instancji z pliku konfiguracyjnego 
 std::vector<int> get_instances(std::string config){
     std::vector<int> instances; 
     std::string instance; 
@@ -96,6 +100,7 @@ std::vector<int> get_instances(std::string config){
     return instances; 
 }
 
+// Podzial problemu na mniejsze instancje 
 std::vector<int> divide_instances(std::vector<int> numbers, int size_of_instance){
    std::vector<int> subvec(numbers.begin(), numbers.begin() + size_of_instance);
    return subvec; 
@@ -114,11 +119,28 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
 }
 
 // Funkcja sluzaca do badania algorytmu 
-auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision){
+auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit){
     long long total_duration = 0; 
     std::vector<int> sorted; 
     std::unordered_map<std::string, std::string> results;
+    const int mltp_measurements = 100;
+    const int min_instance_size = 100000; 
+    // Wiecej pomiarow dla mniejszych instancji 
+    if(instance.size() < min_instance_size){
+        num_of_measurements *= mltp_measurements;
+    }
+
+    // Domyslnie time_limit jest w sekundach 
+    if(precision == "ms"){
+        time_limit *= 1000;
+    } else if (precision == "us") {
+        time_limit *= 1000000;
+    } else if (precision == "ns") {
+        time_limit *= 1000000000;
+    }
+
     // Wykonanie tego samego algorytmu X-razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
+    std::cout << "LIMIT POMIARU INSTANCJI: " << time_limit << precision << '\n';
     for(int i = 0; i < num_of_measurements; i++){
         auto start_timer = std::chrono::high_resolution_clock::now();
         
@@ -136,10 +158,17 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
             auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_timer - start_timer);
             total_duration += duration.count(); 
         }
+        if(total_duration > time_limit){
+            std::cout << "PRZEKROCZONO MAKSYMALNY, CALKOWITY CZAS POMIARU INSTANCJI: " << total_duration << " " << precision << std::endl; 
+            break;
+        } 
     }
     // Wyliczenie sredniego czasu dla zadanej instancji problemu 
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
-    std::cout << avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
+    std::cout << '\n' << "**************************************************************" << '\n';
+    std::cout << "CZAS: " <<  avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
+    std::cout << "CZAS CALKOWITY: " << precision << total_duration << '\n';
+    std::cout << "**************************************************************" << '\n';
 
     Result algorithm_result; 
     algorithm_result.sorted_data = sorted; 
@@ -165,7 +194,7 @@ int main(){
         // Podzielenie glownego problemu na wybrane instancje
         int size_of_instance = instances[i]; 
         std::vector<int> sub_vec = divide_instances(data, size_of_instance);
-        auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"]);
+        auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"], std::stoi(config["Measurement.time_limit"]));
 
         // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
         if(std::stoi(config["Verification.show_sorted"])){
@@ -174,11 +203,8 @@ int main(){
             std::cout<< resultObj.sorted_data[i] << " ";
         }std::cout<<std::endl; 
     }
-        std::cout<<"CZAS: "<<resultObj.avg_duration<<'\n';
+        // std::cout<<"CZAS: "<<resultObj.avg_duration<<'\n';
         save_data(config["Data.output_file"], resultObj);
     }
     std::cout << "Pomiar zakonczony..." << std::endl;
-
-    // Zapis wyników do pliku
-
 }
