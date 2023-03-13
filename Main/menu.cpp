@@ -42,7 +42,24 @@ void save_data(const std::string filename, Result results){
     } else {
         std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
     }
-    std::cout<< "Zapis zakonczony..." << "\n";
+    std::cout<< "Czas zapisany..." << "\n";
+}
+
+// Zapisuje wynik algorytmu 
+void save_sorted(const std::string filename, Result results){
+    std::ofstream file(filename, std::ios::app | std::ios::out);
+
+    if(file.is_open()){
+        file << "**************" << "ROZMIAR INSTANCJI: " << results.num_of_instance << "**************" << '\n';
+        for(int i = 0; i < results.sorted_data.size(); i++)
+            file << results.sorted_data[i] << ";"; 
+        file << '\n';  
+        file << "**************************************************************************************" << '\n';
+        file.close();
+    } else {
+        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
+    }
+    std::cout<< "Wynik algorytmu zapisany..." << "\n";
 }
 
 // Przetwarzanie pliku konfiguracyjnego 
@@ -167,7 +184,7 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
     std::cout << '\n' << "**************************************************************" << '\n';
     std::cout << "CZAS: " <<  avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
-    std::cout << "CZAS CALKOWITY: " << precision << total_duration << '\n';
+    std::cout << "CZAS CALKOWITY: " << total_duration << precision <<'\n';
     std::cout << "**************************************************************" << '\n';
 
     Result algorithm_result; 
@@ -203,8 +220,9 @@ int main(){
             std::cout<< resultObj.sorted_data[i] << " ";
         }std::cout<<std::endl; 
     }
-        // std::cout<<"CZAS: "<<resultObj.avg_duration<<'\n';
         save_data(config["Data.output_file"], resultObj);
+        if(std::stoi(config["Verification.save_sorted"]))
+            save_sorted("output.txt", resultObj);
     }
     std::cout << "Pomiar zakonczony..." << std::endl;
 }
