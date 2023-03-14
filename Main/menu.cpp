@@ -158,7 +158,7 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     std::vector<int> sorted; 
     std::unordered_map<std::string, std::string> results;
     const int mltp_measurements = 100;
-    const int min_instance_size = 100000; 
+    const int min_instance_size = 10000; 
     // Wiecej pomiarow dla mniejszych instancji 
     if(instance.size() < min_instance_size){
         num_of_measurements *= mltp_measurements;
