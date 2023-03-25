@@ -43,7 +43,7 @@ void save_data(const std::string filename, Result results){
     } else {
         std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
     }
-    std::cout<< "Czas zapisany..." << "\n";
+    std::cout<< "Wynik badania zapisany..." << "\n";
 }
 
 // Zapisuje wynik algorytmu 
@@ -69,14 +69,15 @@ void print_progress(double progress) {
     const int progressbar_width = 50;
     // Okreslenie pozycji kursora  
     int position = progress * progressbar_width;
-    std::cout << "STAN: ["; 
+    std::cout << "\r["; 
     for(int i = 0; i < progressbar_width; i++){
         if( i < position) 
             std::cout << '#'; 
         else 
             std::cout << '.';
     }
-    std::cout << "] " << std::setprecision(0) << std::fixed << (progress * 100) << '%' << std::endl;
+    std::cout << "] " << std::setprecision(0) << std::fixed << (progress * 100) << '%' << std::flush; 
+    std::cout << std::endl;
 }
 
 // Przetwarzanie pliku konfiguracyjnego 
@@ -155,10 +156,13 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
 // Funkcja sluzaca do badania algorytmu 
 auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit){
     long long total_duration = 0; 
+    
     std::vector<int> sorted; 
     std::unordered_map<std::string, std::string> results;
-    const int mltp_measurements = 100;
-    const int min_instance_size = 10000; 
+
+    const int mltp_measurements = 1000;
+    const int min_instance_size = 100; 
+
     // Wiecej pomiarow dla mniejszych instancji 
     if(instance.size() < min_instance_size){
         num_of_measurements *= mltp_measurements;
@@ -174,7 +178,6 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     }
 
     // Wykonanie tego samego algorytmu X-razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
-    std::cout << "LIMIT POMIARU INSTANCJI: " << time_limit << precision << '\n';
     for(int i = 0; i < num_of_measurements; i++){
         auto start_timer = std::chrono::high_resolution_clock::now();
         
@@ -195,13 +198,14 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
         if(total_duration > time_limit){
             std::cout << "PRZEKROCZONO MAKSYMALNY, CALKOWITY CZAS POMIARU INSTANCJI: " << total_duration << " " << precision << std::endl; 
             break;
-        } 
+        }
     }
     // Wyliczenie sredniego czasu dla zadanej instancji problemu 
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
     std::cout << '\n' << "**************************************************************" << '\n';
-    std::cout << "CZAS: " <<  avg_duration << precision << " ROZMIAR INSTANCJI: " << instance.size() << '\n';
+    std::cout << "CZAS: " <<  avg_duration << precision << '\n' << "ROZMIAR INSTANCJI: " << instance.size() << '\n';
     std::cout << "CZAS CALKOWITY: " << total_duration << precision <<'\n';
+    std::cout << "LIMIT POMIARU INSTANCJI: " << time_limit << precision << std::endl;
 
     Result algorithm_result; 
     algorithm_result.sorted_data = sorted; 
@@ -212,6 +216,10 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
 
  
 int main(){
+    // Rozpoczecie programu
+    std::cout << "Nacisnij [ENTER] aby rozpoczac..." << std::endl;
+    getchar();
+
     // Oczyt pliku sterującego i jego przetworzenie
     std::unordered_map<std::string, std::string> config = parse_config("config.ini");
 
@@ -243,6 +251,11 @@ int main(){
             save_sorted("output.txt", resultObj);
     }
     print_progress(1);
-    std::cout << "Pomiar zakonczony..." << std::endl;
+    std::cout << "Pomiar zakonczony..." << '\n' << "Wyniki zapisane do pliku " << config["Data.output_file"] <<std::endl;
 
+    // Zakonczenie programu
+    std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
+    getchar(); 
+    return 0;
+    
 }
