@@ -25,12 +25,14 @@ std::vector<int> read_data(std::string filename){
         while(file >> number >> comma){
             data.push_back(number);
         }
-        file.close(); 
+        file.close();
+        std::cout<< "Odczyt zakonczony..." << "\n";
+        return data; 
     } else { 
-        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "Do odczytu\n";
+        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << " do odczytu\n";
+        return {0};
     }
-    std::cout<< "Odczyt zakonczony..." << "\n";
-    return data; 
+ 
 }
 
 // Zapis wyników do pliku
@@ -40,10 +42,10 @@ void save_data(const std::string filename, Result results){
     if(file.is_open()){
         file << results.avg_duration << ";" << results.num_of_instance << '\n'; 
         file.close();
+        std::cout<< "Wynik badania zapisany..." << "\n";
     } else {
-        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << "do zapisu\n";
+        std::cerr << "Error: Nie mozna otworzyc pliku " << filename << " do zapisu\n";
     }
-    std::cout<< "Wynik badania zapisany..." << "\n";
 }
 
 // Zapisuje wynik algorytmu 
@@ -219,7 +221,7 @@ int main(){
     // Rozpoczecie programu
     std::cout << "Nacisnij [ENTER] aby rozpoczac..." << std::endl;
     getchar();
-
+    bool saved = true; 
     // Oczyt pliku sterującego i jego przetworzenie
     std::unordered_map<std::string, std::string> config = parse_config("config.ini");
 
@@ -230,7 +232,7 @@ int main(){
     std::vector<int> instances = get_instances(config["SortingAlgorithm1Measurements.instances"]);
 
     // Przetwarzanie danych za pomoca wybranego algorytmu 
-    // Algorytm uruchamiany X-razy dla kazdego rozmiaru instancji  
+    // Algorytm uruchamiany X-razy dla kazdego rozmiaru instancji
     for(int i = 0; i < std::stoi(config["SortingAlgorithm1Measurements.num_of_instances"]); i++){
         // Podzielenie glownego problemu na wybrane instancje
         int size_of_instance = instances[i]; 
@@ -251,8 +253,7 @@ int main(){
             save_sorted("output.txt", resultObj);
     }
     print_progress(1);
-    std::cout << "Pomiar zakonczony..." << '\n' << "Wyniki zapisane do pliku " << config["Data.output_file"] <<std::endl;
-
+    std::cout << "Pomiar zakonczony..." << std::endl;
     // Zakonczenie programu
     std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
     getchar(); 
