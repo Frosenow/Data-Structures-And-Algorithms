@@ -6,6 +6,9 @@
 #include <vector>
 #include <chrono> 
 #include <iomanip>
+#include <algorithm>
+#include <math.h>
+
 
 // Klasa zawierajaca informacje o analize algorytmu
 class Result {
@@ -143,7 +146,11 @@ std::vector<int> divide_instances(std::vector<int> numbers, int size_of_instance
    return subvec; 
 }
 
-// Testowy algorytm
+// *******************************************
+// SORTOWANIA - POCZATEK
+// *******************************************
+
+// Sortowanie babelkowe
 std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
 {
 	for(int i=0; i < tab.size(); i++)
@@ -155,6 +162,82 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
     return tab; 
 }
 
+// Sortowanie przez kopcowanie 
+std::vector <int> heap_sort(std::vector<int>& arr);
+void build_heap(std::vector<int>& arr);
+void heapify(std::vector<int>& arr, int i, int heap_size);
+
+std::vector <int> heap_sort(std::vector<int>& arr){
+    // Build a heap from the input array
+    build_heap(arr);
+ 
+    // Repeat until the heap contains only one element
+    for (int i = arr.size() - 1; i > 0; i--){
+        // Swap the root element with the last element
+        std::swap(arr[0], arr[i]);
+ 
+        // Remove the last element (which is now in the correct position)
+        int heap_size = i;
+        heapify(arr, 0, heap_size);
+    }
+    // Reverse the sorted array and return it
+    reverse(arr.begin(), arr.end());
+
+    return arr; 
+}
+ 
+// building heap
+void build_heap(std::vector<int>& arr){
+    // Build a max heap from the input array
+    int n = arr.size();
+    for (int i = n / 2 - 1; i >= 0; i--){
+        heapify(arr, i, n);
+    }
+}
+ 
+// function for heapify
+void heapify(std::vector<int>& arr, int i, int heap_size){
+    // Heapify the subtree rooted at i in the input array
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+ 
+    if (left < heap_size && arr[left] > arr[largest])
+        largest = left;
+    if (right < heap_size && arr[right] > arr[largest])
+        largest = right;
+ 
+    if (largest != i){
+        std::swap(arr[i], arr[largest]);
+        heapify(arr, largest, heap_size);
+    }
+}
+
+// Sortowanie przez zliczanie 
+std::vector <int> countSort(std::vector<int>& arr)
+{
+    int max = *max_element(arr.begin(), arr.end());
+    int min = *min_element(arr.begin(), arr.end());
+    int range = max - min + 1;
+ 
+    std::vector<int> count(range), output(arr.size());
+    for (int i = 0; i < arr.size(); i++)
+        count[arr[i] - min]++;
+ 
+    for (int i = 1; i < count.size(); i++)
+        count[i] += count[i - 1];
+ 
+    for (int i = arr.size() - 1; i >= 0; i--) {
+        output[count[arr[i] - min] - 1] = arr[i];
+        count[arr[i] - min]--;
+    }
+
+    return output;
+}
+
+// *******************************************
+// SORTOWANIA - KONIEC
+// *******************************************
 
 // Funkcja sluzaca do badania algorytmu 
 auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit){
@@ -185,7 +268,7 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
         auto start_timer = std::chrono::high_resolution_clock::now();
         
         // Miejsce na badany algorytm:
-        sorted = sortowanie_babelkowe(instance);
+        sorted = countSort(instance);
 
         auto stop_timer = std::chrono::high_resolution_clock::now();
     if(precision == "ms"){
