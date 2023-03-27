@@ -151,12 +151,12 @@ std::vector<int> divide_instances(std::vector<int> numbers, int size_of_instance
 // *******************************************
 
 // Sortowanie babelkowe
-std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
+std::vector <int> bubble_sort(std::vector <int> tab)
 {
 	for(int i=0; i < tab.size(); i++)
-		for(int j=1; j < tab.size() - i; j++) //pętla wewnętrzna
+		for(int j=1; j < tab.size() - i; j++) 
 		if(tab[j-1]>tab[j])
-			//zamiana miejscami
+			// Zamiana miejscami - wypchniecie najwiekszego 'babelka' na koniec
 			std::swap(tab[j-1], tab[j]);
 
     return tab; 
@@ -165,39 +165,40 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
 // Sortowanie przez kopcowanie 
 std::vector <int> heap_sort(std::vector<int>& arr);
 void build_heap(std::vector<int>& arr);
-void heapify(std::vector<int>& arr, int i, int heap_size);
+void convert_to_heap(std::vector<int>& arr, int i, int heap_size);
 
 std::vector <int> heap_sort(std::vector<int>& arr){
-    // Build a heap from the input array
+    // Tworzenie kopca z wejsciowego wektora
     build_heap(arr);
  
-    // Repeat until the heap contains only one element
+    // Powtarzanie do momentu az kopiec zawiera tylko jeden element
     for (int i = arr.size() - 1; i > 0; i--){
-        // Swap the root element with the last element
+
+        // Zamiana elementu korzenia z ostatnim elementem 
         std::swap(arr[0], arr[i]);
  
-        // Remove the last element (which is now in the correct position)
+        // Usuniecie po zamianie ostatniego elementu ktory jest we wlasciwym miejscu
         int heap_size = i;
-        heapify(arr, 0, heap_size);
+        convert_to_heap(arr, 0, heap_size);
     }
-    // Reverse the sorted array and return it
-    reverse(arr.begin(), arr.end());
 
+    // Zwrot posortowanego wektora
     return arr; 
 }
  
-// building heap
+// Budowanie kopca
 void build_heap(std::vector<int>& arr){
-    // Build a max heap from the input array
+    // Budowanie maksymalnego kopca
     int n = arr.size();
+    // max ilosc wezlow 2^(h + 1) - 1, h - wysokosc 
     for (int i = n / 2 - 1; i >= 0; i--){
-        heapify(arr, i, n);
+        convert_to_heap(arr, i, n);
     }
 }
  
-// function for heapify
-void heapify(std::vector<int>& arr, int i, int heap_size){
-    // Heapify the subtree rooted at i in the input array
+// Przeksztalcanie wektora w kopiec 
+void convert_to_heap(std::vector<int>& arr, int i, int heap_size){
+    // Przeksztalcenie wektora w drzewo binarne
     int largest = i;
     int left = 2 * i + 1;
     int right = 2 * i + 2;
@@ -209,26 +210,35 @@ void heapify(std::vector<int>& arr, int i, int heap_size){
  
     if (largest != i){
         std::swap(arr[i], arr[largest]);
-        heapify(arr, largest, heap_size);
+        convert_to_heap(arr, largest, heap_size);
     }
 }
 
 // Sortowanie przez zliczanie 
-std::vector <int> countSort(std::vector<int>& arr)
+std::vector <int> count_sort(std::vector<int>& arr)
 {
+    // Deklaracja minimalnej i maksymalnej wartosci 
     int max = *max_element(arr.begin(), arr.end());
     int min = *min_element(arr.begin(), arr.end());
+    // Okreslenie rozmiaru tablicy (rozpietosc zbioru liczb)
     int range = max - min + 1;
  
+    // Deklaracja wektora count (ilosc element) oraz output (wyjsciowa posortowana tablica)
     std::vector<int> count(range), output(arr.size());
+    
+    // Zliczenie wystapien wszystkich liczb 
+    // najmniejsza wartosc na 0 indeks 
     for (int i = 0; i < arr.size(); i++)
         count[arr[i] - min]++;
  
+    // Ustalenie indeksu 
     for (int i = 1; i < count.size(); i++)
         count[i] += count[i - 1];
  
+    // Iteracja od konca i wstawianie liczb
     for (int i = arr.size() - 1; i >= 0; i--) {
         output[count[arr[i] - min] - 1] = arr[i];
+        // Zmniejszenie ilosci liczb
         count[arr[i] - min]--;
     }
 
@@ -268,7 +278,9 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
         auto start_timer = std::chrono::high_resolution_clock::now();
         
         // Miejsce na badany algorytm:
-        sorted = countSort(instance);
+        // sorted = count_sort(instance);
+        sorted = heap_sort(instance);
+        // sorted = bubble_sort(instance);
 
         auto stop_timer = std::chrono::high_resolution_clock::now();
     if(precision == "ms"){
