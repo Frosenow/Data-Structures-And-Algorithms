@@ -155,18 +155,19 @@ std::vector <int> sortowanie_babelkowe(std::vector <int> tab)
     return tab; 
 }
 
+
 // Funkcja sluzaca do badania algorytmu 
 auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit){
-    long long total_duration = 0; 
+    auto total_duration = 0; 
     
     std::vector<int> sorted; 
     std::unordered_map<std::string, std::string> results;
 
     const int mltp_measurements = 1000;
-    const int min_instance_size = 100; 
+    const int min_instance_size = 500; 
 
     // Wiecej pomiarow dla mniejszych instancji 
-    if(instance.size() < min_instance_size){
+    if(instance.size() <= min_instance_size){
         num_of_measurements *= mltp_measurements;
     }
 
@@ -187,20 +188,28 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
         sorted = sortowanie_babelkowe(instance);
 
         auto stop_timer = std::chrono::high_resolution_clock::now();
-        if(precision == "ms"){
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer);
-            total_duration += duration.count(); 
-        } else if (precision == "us") {
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop_timer - start_timer);
-            total_duration += duration.count(); 
-        } else if (precision == "ns") {
-            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_timer - start_timer);
-            total_duration += duration.count(); 
-        }
-        if(total_duration > time_limit){
+    if(precision == "ms"){
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer);
+        if(total_duration + duration.count() > time_limit){
             std::cout << "PRZEKROCZONO MAKSYMALNY, CALKOWITY CZAS POMIARU INSTANCJI: " << total_duration << " " << precision << std::endl; 
             break;
         }
+        total_duration += duration.count(); 
+    } else if (precision == "us") {
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop_timer - start_timer);
+        if(total_duration + duration.count() > time_limit){
+            std::cout << "PRZEKROCZONO MAKSYMALNY, CALKOWITY CZAS POMIARU INSTANCJI: " << total_duration << " " << precision << std::endl; 
+            break;
+        }
+        total_duration += duration.count(); 
+    } else if (precision == "ns") {
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_timer - start_timer);
+        if(total_duration + duration.count() > time_limit){
+            std::cout << "PRZEKROCZONO MAKSYMALNY, CALKOWITY CZAS POMIARU INSTANCJI: " << total_duration << " " << precision << std::endl; 
+            break;
+        }
+        total_duration += duration.count(); 
+    }
     }
     // Wyliczenie sredniego czasu dla zadanej instancji problemu 
     double avg_duration = static_cast<double>(total_duration) / num_of_measurements;
@@ -237,6 +246,7 @@ int main(){
         // Podzielenie glownego problemu na wybrane instancje
         int size_of_instance = instances[i]; 
         std::vector<int> sub_vec = divide_instances(data, size_of_instance);
+        std::cout << "Rozpoczynam pomiar..." << std::endl; 
         auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"], std::stoi(config["Measurement.time_limit"]));
 
         // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
