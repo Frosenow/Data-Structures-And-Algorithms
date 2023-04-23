@@ -250,7 +250,7 @@ std::vector <int> count_sort(std::vector<int>& arr)
 // *******************************************
 
 // Funkcja sluzaca do badania algorytmu 
-auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit, std::string algorithm_name){
+Result solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit, std::string algorithm_name){
     auto total_duration = 0; 
     
     std::vector<int> sorted; 
@@ -284,13 +284,8 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
             sorted = count_sort(instance);           
         } else {
             std::cout << "Nieznana nazwa algorytmu" << std::endl; 
-            break; 
+            return Result();
         }
-        // Miejsce na badany algorytm:
-        // sorted = count_sort(instance);
-        // sorted = heap_sort(instance);
-        // sorted = bubble_sort(instance);
-
         auto stop_timer = std::chrono::high_resolution_clock::now();
     if(precision == "ms"){
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_timer - start_timer);
@@ -353,7 +348,12 @@ int main(){
         std::cout << "Rozpoczynam pomiar..." << std::endl; 
         auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"], std::stoi(config["Measurement.time_limit"]), config["SortingAlgorithm.name"]);
 
-        // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
+        // Zatrzymanie badania gdy wystapil blad dotyczacy blednej nazwy algorytmu
+        if (resultObj.sorted_data.empty() || resultObj.avg_duration == 0 || resultObj.num_of_instance == 0) {
+            std::cout << "Blad podczas badania! Upewnij sie, ze wprowadziles poprawna nazwe badanego algorytmu w pliku konfiguracyjnym" << std::endl;
+            break; 
+        } 
+
         if(std::stoi(config["Verification.show_sorted"])){
         std::cout << "Dane po sortowaniu: " << "\n";
         for(int i = 0; i < resultObj.sorted_data.size(); i++){
@@ -371,6 +371,5 @@ int main(){
     // Zakonczenie programu
     std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
     getchar(); 
-    return 0;
-    
+    return 0; 
 }
