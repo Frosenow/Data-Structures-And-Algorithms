@@ -250,7 +250,7 @@ std::vector <int> count_sort(std::vector<int>& arr)
 // *******************************************
 
 // Funkcja sluzaca do badania algorytmu 
-auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit){
+auto solve_problem(std::vector<int> instance, int num_of_measurements, std::string precision, int time_limit, std::string algorithm_name){
     auto total_duration = 0; 
     
     std::vector<int> sorted; 
@@ -276,10 +276,19 @@ auto solve_problem(std::vector<int> instance, int num_of_measurements, std::stri
     // Wykonanie tego samego algorytmu X-razy w celu pomiaru czasu z wykorzystaniem sredniej arytmetycznej 
     for(int i = 0; i < num_of_measurements; i++){
         auto start_timer = std::chrono::high_resolution_clock::now();
-        
+        if(algorithm_name == "Bubble_Sort"){
+            sorted = bubble_sort(instance);
+        } else if (algorithm_name == "Heap_Sort") {
+            sorted = heap_sort(instance);
+        } else if (algorithm_name == "Count_Sort") {
+            sorted = count_sort(instance);           
+        } else {
+            std::cout << "Nieznana nazwa algorytmu" << std::endl; 
+            break; 
+        }
         // Miejsce na badany algorytm:
         // sorted = count_sort(instance);
-        sorted = heap_sort(instance);
+        // sorted = heap_sort(instance);
         // sorted = bubble_sort(instance);
 
         auto stop_timer = std::chrono::high_resolution_clock::now();
@@ -342,7 +351,7 @@ int main(){
         int size_of_instance = instances[i]; 
         std::vector<int> sub_vec = divide_instances(data, size_of_instance);
         std::cout << "Rozpoczynam pomiar..." << std::endl; 
-        auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"], std::stoi(config["Measurement.time_limit"]));
+        auto resultObj = solve_problem(sub_vec, std::stoi(config["Measurement.measurements"]), config["Measurement.precision"], std::stoi(config["Measurement.time_limit"]), config["SortingAlgorithm.name"]);
 
         // Wypisz posortowane dane zgodnie z ustawieniami w konfiguracji 
         if(std::stoi(config["Verification.show_sorted"])){
