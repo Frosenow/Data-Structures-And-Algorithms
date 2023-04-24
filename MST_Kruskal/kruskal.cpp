@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
 
 
 using namespace std;
@@ -118,9 +119,15 @@ void read_matrix(int n, ifstream& infile) {
 void perform_tests(int range_size, vector<int> ranges, string input_file){
     for(int i = 0; i < range_size; i++){
         int nodes = ranges[i];
-        ifstream infile(input_file); 
+        ifstream infile(input_file);
+        std::cout << "Rozmiar macierzy: " << ranges[i] << "x" << ranges[i] << std::endl; 
         read_matrix(nodes, infile);
+         auto start = std::chrono::high_resolution_clock::now();
         kruskal(nodes);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
+        std::cout<< std::endl; 
     }
 }
 
