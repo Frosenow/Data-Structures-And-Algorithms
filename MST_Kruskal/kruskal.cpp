@@ -9,6 +9,7 @@
 
 using namespace std;
 
+// Przetwarzanie pliku konfiguracyjnego 
 unordered_map<string, string> parse_config_file(const string& filename) {
     ifstream infile(filename);
     if (!infile.is_open()) {
@@ -39,18 +40,26 @@ unordered_map<string, string> parse_config_file(const string& filename) {
     return config;
 }
 
-const int MAXN = 1000; // Maksymalna ilosc wierzcholkow
+// Maksymalna ilosc wierzcholkow
+const int MAX_VERTICES = 1000; 
 
-int parent[MAXN]; // tablica przechowująca rodziców wierzchołków
-int rank_[MAXN]; // tablica przechowująca rozmiary zbiorów wierzchołków
+// Tablica rodzicow wierzcholkow
+int parent[MAX_VERTICES]; 
+
+// Tablica maksymalnej glebokosci drzewa z danego wierzcholka
+int rank_[MAX_VERTICES]; 
 
 struct Edge {
-    int u, v, weight; // wierzchołki połączone krawędzią oraz jej waga
+    // Wierzcholki polaczone krawedzia z okreslona waga 
+    int u, v, weight; 
 };
 
-Edge edges[MAXN*MAXN]; // tablica przechowująca krawędzie grafu
-int num_edges = 0; // liczba krawędzi w grafie
+// Tablica przechowująca krawędzie grafu
+Edge edges[MAX_VERTICES*MAX_VERTICES]; 
+// Poczatkowa wartosc krawedzi w grafie
+int num_edges = 0; 
 
+// Znajdowanie rodzica wierzcholka 
 int find_set(int v) {
     if (v == parent[v]) {
         return v;
@@ -58,9 +67,11 @@ int find_set(int v) {
     return parent[v] = find_set(parent[v]);
 }
 
+// Laczenie dwoch zbiorow, do ktorych naleza wierzcholki
 void union_sets(int u, int v) {
     u = find_set(u);
     v = find_set(v);
+    // Zbior z mniejsza ranga dolaczony do zbioru z wieksza ranga 
     if (u != v) {
         if (rank_[u] < rank_[v])
             swap(u, v);
@@ -70,6 +81,7 @@ void union_sets(int u, int v) {
     }
 }
 
+// Porownanie wag krawedzi 
 bool cmp(Edge a, Edge b) {
     return a.weight < b.weight;
 }
