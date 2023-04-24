@@ -95,33 +95,11 @@ void kruskal(int n) {
     cout << "Waga MST: " << mst_weight << endl;
 }
 
-void print_mst_edges(int n) {
-    
-}
-
-int main() {
-    // Odczyt pliku konfiguracyjnego 
-    unordered_map<string, string> config = parse_config_file("config.ini");
-
-    int max_nodes = stoi(config["max_nodes"]);
-    string input_file = config["input_file"];
-    vector<int> ranges;
-    istringstream iss(config["ranges"]);
-    for (string range; getline(iss, range, ','); ) {
-        ranges.push_back(stoi(range));
-    }
-    int range_size = stoi(config["range_size"]);
-
-    // Odczyt danych wejsciowych
-    ifstream infile(config["input_file"]);
-
-    int nodes = stoi(config["nodes"]);
-
-
+void read_matrix(int n, ifstream& infile) {
     // Odczyt macierzy
-    vector<vector<int>> graph(nodes, vector<int>(nodes));
-    for (int i = 0; i < nodes; i++) {
-        for (int j = 0; j < nodes; j++) {
+    vector<vector<int>> graph(n, vector<int>(n));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
             infile >> graph[i][j];
             std::cout<<graph[i][j]<<" "; 
             if (graph[i][j] > 0) {
@@ -131,10 +109,33 @@ int main() {
                 num_edges++;
             }
         }
-        // Tworzenie podmacierzy jesli macierz wejsciowa jest wieksza niz zadeklarowana macierz (nodes x nodes)
+        // Tworzenie podmacierzy jesli macierz wejsciowa jest wieksza niz zadeklarowana macierz (n x n)
         infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
         std::cout<<std::endl;
     }
+}
+
+int main() {
+    
+    // Odczyt pliku konfiguracyjnego 
+    unordered_map<string, string> config = parse_config_file("config.ini");
+
+    int max_nodes = stoi(config["max_nodes"]);
+    string input_file = config["input_file"];
+    
+    vector<int> ranges;
+    istringstream iss(config["ranges"]);
+    for (string range; getline(iss, range, ','); ) {
+        ranges.push_back(stoi(range));
+    }
+    int range_size = stoi(config["range_size"]);
+
+    // Odczyt danych wejsciowych
+    ifstream infile(input_file);
+
+    int nodes = stoi(config["nodes"]);
+    read_matrix(nodes, infile);
+
     kruskal(nodes);
     return 0;
 }
