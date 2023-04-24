@@ -1,11 +1,44 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
+#include <unordered_map>
 #include <vector>
+
 
 using namespace std;
 
-const int MAXN = 1000; // maksymalna liczba wierzchołków
+unordered_map<string, string> parse_config_file(const string& filename) {
+    ifstream infile(filename);
+    if (!infile.is_open()) {
+        throw runtime_error("Error: cannot open file " + filename);
+    }
+
+    unordered_map<string, string> config;
+    string line;
+    while (getline(infile, line)) {
+        if (line.empty() || line[0] == ';') {
+            // skip comments and empty lines
+            continue;
+        }
+        size_t delimiter_pos = line.find('=');
+        if (delimiter_pos == string::npos) {
+            // skip lines without delimiter
+            continue;
+        }
+        string key = line.substr(0, delimiter_pos);
+        string value = line.substr(delimiter_pos + 1);
+        // trim whitespace
+        key.erase(remove_if(key.begin(), key.end(), ::isspace), key.end());
+        value.erase(remove_if(value.begin(), value.end(), ::isspace), value.end());
+        config[key] = value;
+    }
+
+    infile.close();
+    return config;
+}
+
+const int MAXN = 1000; // Maksymalna ilosc wierzcholkow
 
 int parent[MAXN]; // tablica przechowująca rodziców wierzchołków
 int rank_[MAXN]; // tablica przechowująca rozmiary zbiorów wierzchołków
@@ -67,16 +100,30 @@ void print_mst_edges(int n) {
 }
 
 int main() {
-    ifstream infile("matrixTest.txt");
-    int nodes;
-    nodes = 6;
+    // Odczyt pliku konfiguracyjnego 
+    unordered_map<string, string> config = parse_config_file("config.ini");
+
+    int max_nodes = stoi(config["max_nodes"]);
+    string input_file = config["input_file"];
+    vector<int> ranges;
+    istringstream iss(config["ranges"]);
+    for (string range; getline(iss, range, ','); ) {
+        ranges.push_back(stoi(range));
+    }
+    int range_size = stoi(config["range_size"]);
+
+    // Odczyt danych wejsciowych
+    ifstream infile(config["input_file"]);
+
+    int nodes = stoi(config["nodes"]);
+
 
     // Odczyt macierzy
     vector<vector<int>> graph(nodes, vector<int>(nodes));
     for (int i = 0; i < nodes; i++) {
         for (int j = 0; j < nodes; j++) {
             infile >> graph[i][j];
-            // std::cout<<graph[i][j]<<" "; 
+            std::cout<<graph[i][j]<<" "; 
             if (graph[i][j] > 0) {
                 edges[num_edges].u = i;
                 edges[num_edges].v = j;
@@ -86,9 +133,8 @@ int main() {
         }
         // Tworzenie podmacierzy jesli macierz wejsciowa jest wieksza niz zadeklarowana macierz (nodes x nodes)
         infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
-        // std::cout<<std::endl;
+        std::cout<<std::endl;
     }
-
     kruskal(nodes);
     return 0;
 }
