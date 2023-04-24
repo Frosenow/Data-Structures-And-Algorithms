@@ -115,6 +115,15 @@ void read_matrix(int n, ifstream& infile) {
     }
 }
 
+void perform_tests(int range_size, vector<int> ranges, string input_file){
+    for(int i = 0; i < range_size; i++){
+        int nodes = ranges[i];
+        ifstream infile(input_file); 
+        read_matrix(nodes, infile);
+        kruskal(nodes);
+    }
+}
+
 int main() {
     
     // Odczyt pliku konfiguracyjnego 
@@ -122,7 +131,7 @@ int main() {
 
     int max_nodes = stoi(config["max_nodes"]);
     string input_file = config["input_file"];
-    
+
     vector<int> ranges;
     istringstream iss(config["ranges"]);
     for (string range; getline(iss, range, ','); ) {
@@ -135,7 +144,9 @@ int main() {
 
     int nodes = stoi(config["nodes"]);
     read_matrix(nodes, infile);
-
     kruskal(nodes);
+
+    // perform_tests(range_size, ranges, input_file);
+
     return 0;
 }
