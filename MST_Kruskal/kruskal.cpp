@@ -139,7 +139,7 @@ void perform_tests(int range_size, vector<int> ranges, string input_file){
         ifstream infile(input_file);
         std::cout << "Rozmiar macierzy: " << ranges[i] << "x" << ranges[i] << std::endl; 
         read_matrix(nodes, infile);
-         auto start = std::chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         kruskal(nodes);
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -153,7 +153,6 @@ int main() {
     // Odczyt pliku konfiguracyjnego 
     unordered_map<string, string> config = parse_config_file("config.ini");
 
-    int max_nodes = stoi(config["max_nodes"]);
     string input_file = config["input_file"];
 
     vector<int> ranges;
@@ -161,18 +160,30 @@ int main() {
     for (string range; getline(iss, range, ','); ) {
         ranges.push_back(stoi(range));
     }
-    int range_size = stoi(config["range_size"]);
 
+    vector<int> percentages;
+    for (string percent; getline(iss, percent, ','); ) {
+        percentages.push_back(stoi(percent));
+    }
+
+    int range_size = stoi(config["range_size"]);
+    int range_size_percentages = stoi(config["range_size_percentages"]);
+
+    // Funkcja do testowania z plikiem matrixTest.txt
+    // int nodes = stoi(config["nodes"]);
+    // read_matrix(nodes, infile);
+    // kruskal(nodes);
+
+
+    vector<vector<int>> matrix = generateMatrix(1000);
+    saveMatrixToFile(matrix, input_file);
+
+    // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
     // Odczyt danych wejsciowych
     ifstream infile(input_file);
+    perform_tests(range_size, ranges, input_file);
 
-    int nodes = stoi(config["nodes"]);
-    read_matrix(nodes, infile);
-    kruskal(nodes);
-
-    vector<vector<int>> matrix = generateMatrix(5);
-    printMatrix(matrix);
-    // perform_tests(range_size, ranges, input_file);
+    // ********* POMIARY DLA KOLEJNYCH USUWANYCH KRAWEDZI **************
 
     return 0;
 }

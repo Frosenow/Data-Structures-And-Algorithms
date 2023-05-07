@@ -16,7 +16,7 @@ vector<vector<int>> generateMatrix(int n) {
     // Tworzenie generatora liczb losowych
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> dist(1, 10);
+    uniform_int_distribution<> dist(1, 20);
 
     // Wypełnianie macierzy losowymi wagami krawędzi
     for (int i = 0; i < n; i++) {
