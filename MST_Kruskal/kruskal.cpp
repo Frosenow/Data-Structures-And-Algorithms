@@ -133,7 +133,22 @@ void read_matrix(int n, ifstream& infile) {
     }
 }
 
-void perform_tests(int range_size, vector<int> ranges, string input_file){
+void save_to_csv(long elapsed_time, int range, const std::string& filename) {
+    std::ofstream outfile(filename, std::ios::app); // Open the file in append mode
+    if (!outfile) {
+        std::cerr << "Blad podczas otwierania pliku " << filename << std::endl;
+        return;
+    }
+    static bool header_written = false; // keep track if the header has been written already
+    if (!header_written) {
+        outfile << "Zmierzony czas [ms];Ilosc wierzcholkow\n"; // Write the header on the first line
+        header_written = true;
+    }
+    outfile << elapsed_time << ";" << range << std::endl; // Write the data in CSV format
+}
+
+
+void perform_tests_instances(int range_size, vector<int> ranges, string input_file){
     for(int i = 0; i < range_size; i++){
         int nodes = ranges[i];
         ifstream infile(input_file);
@@ -145,7 +160,21 @@ void perform_tests(int range_size, vector<int> ranges, string input_file){
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
         std::cout<< std::endl; 
+        save_to_csv(elapsed_time.count(), nodes, "output_instances.csv");
     }
+}
+
+void perform_tests_percentages(string input_file, int max_nodes){
+        int nodes = max_nodes;
+        ifstream infile(input_file);
+        read_matrix(nodes, infile);
+        auto start = std::chrono::high_resolution_clock::now();
+        kruskal(nodes);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
+        std::cout<< std::endl; 
+        save_to_csv(elapsed_time.count(), nodes, "output_instances.csv");
 }
 
 int main() {
@@ -155,6 +184,8 @@ int main() {
 
     string input_file = config["input_file"];
 
+    int max_nodes = stoi(config["max_nodes"]);
+
     vector<int> ranges;
     istringstream iss(config["ranges"]);
     for (string range; getline(iss, range, ','); ) {
@@ -162,7 +193,8 @@ int main() {
     }
 
     vector<int> percentages;
-    for (string percent; getline(iss, percent, ','); ) {
+    istringstream fss(config["percentages"]);
+    for (string percent; getline(fss, percent, ','); ) {
         percentages.push_back(stoi(percent));
     }
 
@@ -175,15 +207,22 @@ int main() {
     // kruskal(nodes);
 
 
-    vector<vector<int>> matrix = generateMatrix(1000);
+    vector<vector<int>> matrix = generateMatrix(max_nodes);
     saveMatrixToFile(matrix, input_file);
 
     // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
     // Odczyt danych wejsciowych
-    ifstream infile(input_file);
-    perform_tests(range_size, ranges, input_file);
+    // ifstream infile(input_file);
+    // perform_tests_instances(range_size, ranges, input_file);
 
-    // ********* POMIARY DLA KOLEJNYCH USUWANYCH KRAWEDZI **************
+    // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
+    for(int i = 0; i < range_size_percentages; i++){
+        cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
+        ifstream infile(input_file);
+        perform_tests_percentages(input_file, max_nodes);
+        removeEdges(matrix, percentages[i]);
+        saveMatrixToFile(matrix, input_file);
+    }
 
     return 0;
 }

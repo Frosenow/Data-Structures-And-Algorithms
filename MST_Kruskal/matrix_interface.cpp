@@ -111,7 +111,7 @@ void removeEdges(vector<vector<int>>& matrix, double percentage) {
             matrix[i][j] = 0;
             numEdgesToRemove--;
             if (isConnected(matrix)) {
-                cout << "Usunieto krawedz (" << i << ", " << j << ")" << endl;
+                // cout << "Usunieto krawedz (" << i << ", " << j << ")" << endl;
             } else {
                 matrix[i][j] = 1;
             }
