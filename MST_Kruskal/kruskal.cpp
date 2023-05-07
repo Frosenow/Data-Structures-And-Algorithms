@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono>
+#include "matrix_interface.h"
 
 
 using namespace std;
@@ -168,6 +169,9 @@ int main() {
     int nodes = stoi(config["nodes"]);
     read_matrix(nodes, infile);
     kruskal(nodes);
+
+    vector<vector<int>> matrix = generateMatrix(5);
+    printMatrix(matrix);
     // perform_tests(range_size, ranges, input_file);
 
     return 0;
