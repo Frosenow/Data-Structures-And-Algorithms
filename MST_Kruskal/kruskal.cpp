@@ -94,7 +94,8 @@ void kruskal(int n) {
 
     sort(edges, edges+num_edges, cmp);
 
-    int mst_weight = 0; // waga MST
+    // waga MST
+    int mst_weight = 0; 
     for (int i = 0; i < num_edges; i++) {
         int u = edges[i].u;
         int v = edges[i].v;
@@ -102,11 +103,14 @@ void kruskal(int n) {
         if (find_set(u) != find_set(v)) {
             union_sets(u, v);
             mst_weight += weight;
+
+            cout << "Waga krawedzi: " << edges[i].weight << ": " << u << " -- " << v << endl;
         }
     }
 
     cout << "Waga MST: " << mst_weight << endl;
 }
+
 
 void read_matrix(int n, ifstream& infile) {
     // Odczyt macierzy
@@ -164,8 +168,11 @@ int main() {
     int nodes = stoi(config["nodes"]);
     read_matrix(nodes, infile);
     kruskal(nodes);
-
     // perform_tests(range_size, ranges, input_file);
+
+    // for(int i = 0; i < nodes - 1; i++){
+    //     std::cout<<edges[i].v+1<<" --> "<<edges[i+1].v+1<<std::endl; 
+    // }
 
     return 0;
 }
