@@ -178,12 +178,15 @@ void perform_tests_percentages(string input_file, int max_nodes){
 }
 
 int main() {
+    // Rozpoczecie programu
+    std::cout << "Nacisnij [ENTER] aby rozpoczac..." << std::endl;
+    getchar();
     
     // Odczyt pliku konfiguracyjnego 
     unordered_map<string, string> config = parse_config_file("config.ini");
 
     string input_file = config["input_file"];
-
+    string test_type = config["test"];
     int max_nodes = stoi(config["max_nodes"]);
 
     vector<int> ranges;
@@ -206,23 +209,34 @@ int main() {
     // read_matrix(nodes, infile);
     // kruskal(nodes);
 
-
     vector<vector<int>> matrix = generateMatrix(max_nodes);
     saveMatrixToFile(matrix, input_file);
+    if(test_type == "instances"){
 
-    // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
-    // Odczyt danych wejsciowych
-    // ifstream infile(input_file);
-    // perform_tests_instances(range_size, ranges, input_file);
-
-    // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
-    for(int i = 0; i < range_size_percentages; i++){
-        cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
+        // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
+        // Odczyt danych wejsciowych
         ifstream infile(input_file);
-        perform_tests_percentages(input_file, max_nodes);
-        removeEdges(matrix, percentages[i]);
-        saveMatrixToFile(matrix, input_file);
-    }
+        perform_tests_instances(range_size, ranges, input_file);
 
+    } else if(test_type == "percentages"){
+
+        // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
+        const string input_file_copy = "matrixCopy.txt";
+        // Utworzenie kopii, poniewaz usuwanie krawedzi jest operacja zmieniajaca macierz
+        saveMatrixToFile(matrix, input_file_copy);
+        for(int i = 0; i < range_size_percentages; i++){
+            cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
+            ifstream infile(input_file_copy);
+            perform_tests_percentages(input_file_copy, max_nodes);
+            removeEdges(matrix, percentages[i]);
+            saveMatrixToFile(matrix, input_file_copy);
+        }
+
+    } else { 
+        std::cout<<"Wybrano niepoprawny typ pomiary w pliku konfiguraycjnym [TYP POMIARU: instances || percentages]";
+    }
+    // Zakonczenie programu
+    std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
+    getchar(); 
     return 0;
 }
