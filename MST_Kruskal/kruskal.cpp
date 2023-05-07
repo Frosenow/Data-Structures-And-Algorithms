@@ -104,7 +104,7 @@ void kruskal(int n) {
             union_sets(u, v);
             mst_weight += weight;
 
-            cout << "Waga krawedzi: " << edges[i].weight << ": " << u << " -- " << v << endl;
+            cout << "Waga krawedzi: " << edges[i].weight << "\tDroga: " << u + 1<< " --> " << v + 1<< endl;
         }
     }
 
@@ -118,7 +118,7 @@ void read_matrix(int n, ifstream& infile) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             infile >> graph[i][j];
-            std::cout<<graph[i][j]<<" "; 
+            // std::cout<<graph[i][j]<<" "; 
             if (graph[i][j] > 0) {
                 edges[num_edges].u = i;
                 edges[num_edges].v = j;
@@ -128,7 +128,7 @@ void read_matrix(int n, ifstream& infile) {
         }
         // Tworzenie podmacierzy jesli macierz wejsciowa jest wieksza niz zadeklarowana macierz (n x n)
         infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
-        std::cout<<std::endl;
+        // std::cout<<std::endl;
     }
 }
 
@@ -169,10 +169,6 @@ int main() {
     read_matrix(nodes, infile);
     kruskal(nodes);
     // perform_tests(range_size, ranges, input_file);
-
-    // for(int i = 0; i < nodes - 1; i++){
-    //     std::cout<<edges[i].v+1<<" --> "<<edges[i+1].v+1<<std::endl; 
-    // }
 
     return 0;
 }
