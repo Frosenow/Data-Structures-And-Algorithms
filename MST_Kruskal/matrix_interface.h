@@ -7,8 +7,9 @@
 #include <fstream>
 #include <queue>
 
-// Function prototypes
+// Prototypy funkcji 
 std::vector<std::vector<int>> generateMatrix(int n);
+std::vector<std::vector<int>> generateDirectedMatrix(int n);
 void printMatrix(std::vector<std::vector<int>> matrix);
 void saveMatrixToFile(std::vector<std::vector<int>> matrix, std::string filename);
 bool isConnected(std::vector<std::vector<int>>& matrix);

@@ -30,6 +30,29 @@ vector<vector<int>> generateMatrix(int n) {
     return matrix;
 }
 
+// Funkcja generująca macierz wag grafu skierowanego o wymiarach n x n
+vector<vector<int>> generateDirectedMatrix(int n) {
+    // Tworzenie macierzy o wymiarach n x n i wypełnienie zerami
+    vector<vector<int>> matrix(n, vector<int>(n, 0));
+
+    // Tworzenie generatora liczb losowych
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dist(1, 20);
+
+    // Wypełnianie macierzy losowymi wagami krawędzi
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (i != j) {
+                int weight = dist(gen);
+                matrix[i][j] = weight;
+            }
+        }
+    }
+
+    return matrix;
+}
+
 // Funkcja wyświetlająca macierz
 void printMatrix(vector<vector<int>> matrix) {
     for (auto row : matrix) {
