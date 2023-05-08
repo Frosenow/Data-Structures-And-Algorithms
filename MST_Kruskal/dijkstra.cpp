@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono>
+#include <climits>
 #include "matrix_interface.h"
 
 
@@ -41,96 +42,18 @@ unordered_map<string, string> parse_config_file(const string& filename) {
     return config;
 }
 
-// Maksymalna ilosc wierzcholkow
-const int MAX_VERTICES = 1000; 
 
-// Tablica rodzicow wierzcholkow
-int parent[MAX_VERTICES]; 
-
-// Tablica maksymalnej glebokosci drzewa z danego wierzcholka
-int rank_[MAX_VERTICES]; 
-
-struct Edge {
-    // Wierzcholki polaczone krawedzia z okreslona waga 
-    int u, v, weight; 
-};
-
-// Tablica przechowująca krawędzie grafu
-Edge edges[MAX_VERTICES*MAX_VERTICES]; 
-// Poczatkowa wartosc krawedzi w grafie
-int num_edges = 0; 
-
-// Znajdowanie rodzica wierzcholka 
-int find_set(int v) {
-    if (v == parent[v]) {
-        return v;
-    }
-    return parent[v] = find_set(parent[v]);
-}
-
-// Laczenie dwoch zbiorow, do ktorych naleza wierzcholki
-void union_sets(int u, int v) {
-    u = find_set(u);
-    v = find_set(v);
-    // Zbior z mniejsza ranga dolaczony do zbioru z wieksza ranga 
-    if (u != v) {
-        if (rank_[u] < rank_[v])
-            swap(u, v);
-        parent[v] = u;
-        if (rank_[u] == rank_[v])
-            rank_[u]++;
-    }
-}
-
-// Porownanie wag krawedzi 
-bool cmp(Edge a, Edge b) {
-    return a.weight < b.weight;
-}
-
-void kruskal(int n) {
-    for (int i = 0; i < n; i++) {
-        parent[i] = i;
-        rank_[i] = 0;
-    }
-
-    sort(edges, edges+num_edges, cmp);
-
-    // waga MST
-    int mst_weight = 0; 
-    for (int i = 0; i < num_edges; i++) {
-        int u = edges[i].u;
-        int v = edges[i].v;
-        int weight = edges[i].weight;
-        if (find_set(u) != find_set(v)) {
-            union_sets(u, v);
-            mst_weight += weight;
-
-            cout << "Waga krawedzi: " << edges[i].weight << "\tDroga: " << u + 1<< " --> " << v + 1<< endl;
-        }
-    }
-
-    cout << "Waga MST: " << mst_weight << endl;
-}
-
-
-void read_matrix(int n, ifstream& infile) {
+vector<vector<int>> read_matrix(int n, ifstream& infile) {
     // Odczyt macierzy
     vector<vector<int>> graph(n, vector<int>(n));
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             infile >> graph[i][j];
-            // std::cout<<graph[i][j]<<" "; 
-            if (graph[i][j] > 0) {
-                edges[num_edges].u = i;
-                edges[num_edges].v = j;
-                edges[num_edges].weight = graph[i][j];
-                num_edges++;
-            }
         }
-        // Tworzenie podmacierzy jesli macierz wejsciowa jest wieksza niz zadeklarowana macierz (n x n)
-        infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
-        // std::cout<<std::endl;
+        infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
+
+    return graph;
 }
 
 void save_to_csv(long elapsed_time, int range, const std::string& filename) {
@@ -148,33 +71,61 @@ void save_to_csv(long elapsed_time, int range, const std::string& filename) {
 }
 
 
-void perform_tests_instances(int range_size, vector<int> ranges, string input_file){
-    for(int i = 0; i < range_size; i++){
-        int nodes = ranges[i];
-        ifstream infile(input_file);
-        std::cout << "Rozmiar macierzy: " << ranges[i] << "x" << ranges[i] << std::endl; 
-        read_matrix(nodes, infile);
-        auto start = std::chrono::high_resolution_clock::now();
-        kruskal(nodes);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
-        std::cout<< std::endl; 
-        save_to_csv(elapsed_time.count(), nodes, "output_instances.csv");
-    }
-}
+// void perform_tests_instances(int range_size, vector<int> ranges, string input_file){
+//     for(int i = 0; i < range_size; i++){
+//         int nodes = ranges[i];
+//         ifstream infile(input_file);
+//         std::cout << "Rozmiar macierzy: " << ranges[i] << "x" << ranges[i] << std::endl; 
+//         read_matrix(nodes, infile);
+//         auto start = std::chrono::high_resolution_clock::now();
+//         kruskal(nodes);
+//         auto end = std::chrono::high_resolution_clock::now();
+//         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+//         std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
+//         std::cout<< std::endl; 
+//         save_to_csv(elapsed_time.count(), nodes, "output_instances.csv");
+//     }
+// }
 
-void perform_tests_percentages(string input_file, int max_nodes){
-        int nodes = max_nodes;
-        ifstream infile(input_file);
-        read_matrix(nodes, infile);
-        auto start = std::chrono::high_resolution_clock::now();
-        kruskal(nodes);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
-        std::cout<< std::endl; 
-        save_to_csv(elapsed_time.count(), nodes, "output_percentages.csv");
+// void perform_tests_percentages(string input_file, int max_nodes){
+//         int nodes = max_nodes;
+//         ifstream infile(input_file);
+//         read_matrix(nodes, infile);
+//         auto start = std::chrono::high_resolution_clock::now();
+//         kruskal(nodes);
+//         auto end = std::chrono::high_resolution_clock::now();
+//         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+//         std::cout << "Czas obliczen: " << elapsed_time.count() << "ms" << std::endl;
+//         std::cout<< std::endl; 
+//         save_to_csv(elapsed_time.count(), nodes, "output_percentages.csv");
+// }
+
+void dijkstra(const vector<vector<int>>& graph, vector<int>& distances) {
+    int n = graph.size();
+    vector<bool> visited(n, false);
+
+    for (int i = 0; i < n; i++) {
+        distances[i] = INT_MAX;
+    }
+    distances[0] = 0;
+
+    for (int i = 0; i < n - 1; i++) {
+        int u = -1;
+        for (int j = 0; j < n; j++) {
+            if (!visited[j] && (u == -1 || distances[j] < distances[u])) {
+                u = j;
+            }
+        }
+        if (distances[u] == INT_MAX) {
+            break;
+        }
+        visited[u] = true;
+        for (int v = 0; v < n; v++) {
+            if (graph[u][v] > 0 && !visited[v]) {
+                distances[v] = min(distances[v], distances[u] + graph[u][v]);
+            }
+        }
+    }
 }
 
 int main() {
@@ -204,37 +155,46 @@ int main() {
     int range_size = stoi(config["range_size"]);
     int range_size_percentages = stoi(config["range_size_percentages"]);
 
-    // Funkcja do testowania z plikiem matrixTest.txt
-    // int nodes = stoi(config["nodes"]);
-    // read_matrix(nodes, infile);
-    // kruskal(nodes);
-
-    vector<vector<int>> matrix = generateMatrix(max_nodes);
-    saveMatrixToFile(matrix, input_file);
-    if(test_type == "instances"){
-
-        // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
-        // Odczyt danych wejsciowych
-        ifstream infile(input_file);
-        perform_tests_instances(range_size, ranges, input_file);
-
-    } else if(test_type == "percentages"){
-
-        // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
-        const string input_file_copy = "matrixCopy.txt";
-        // Utworzenie kopii, poniewaz usuwanie krawedzi jest operacja zmieniajaca macierz
-        saveMatrixToFile(matrix, input_file_copy);
-        for(int i = 0; i < range_size_percentages; i++){
-            cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
-            ifstream infile(input_file_copy);
-            perform_tests_percentages(input_file_copy, max_nodes);
-            removeEdges(matrix, percentages[i]);
-            saveMatrixToFile(matrix, input_file_copy);
-        }
-
-    } else { 
-        std::cout<<"Wybrano niepoprawny typ pomiary w pliku konfiguraycjnym [TYP POMIARU: instances || percentages]";
+    // Funkcja do testowania z plikiem matrixDijkstra.txt
+    vector<vector<int>> matrix = generateDirectedMatrix(max_nodes);
+    saveMatrixToFile(matrix, "matrixDijkstra.txt");
+    ifstream infile("matrixDijkstra.txt");
+    vector<vector<int>> graph = read_matrix(max_nodes, infile);
+    int n = graph.size();
+    vector<int> distances(n, INT_MAX);
+    dijkstra(graph, distances);
+    
+    cout << "Najkrotsza droga od zrodla S(0):\n";
+    for (int i = 1; i < n; i++) {
+        cout << "0 -> " << i << " Waga: " << distances[i] << "\n";
     }
+
+    // vector<vector<int>> matrix = generateMatrix(max_nodes);
+    // saveMatrixToFile(matrix, input_file);
+    // if(test_type == "instances"){
+
+    //     // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
+    //     // Odczyt danych wejsciowych
+    //     ifstream infile(input_file);
+    //     perform_tests_instances(range_size, ranges, input_file);
+
+    // } else if(test_type == "percentages"){
+
+    //     // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
+    //     const string input_file_copy = "matrixCopy.txt";
+    //     // Utworzenie kopii, poniewaz usuwanie krawedzi jest operacja zmieniajaca macierz
+    //     saveMatrixToFile(matrix, input_file_copy);
+    //     for(int i = 0; i < range_size_percentages; i++){
+    //         cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
+    //         ifstream infile(input_file_copy);
+    //         perform_tests_percentages(input_file_copy, max_nodes);
+    //         removeEdges(matrix, percentages[i]);
+    //         saveMatrixToFile(matrix, input_file_copy);
+    //     }
+
+    // } else { 
+    //     std::cout<<"Wybrano niepoprawny typ pomiary w pliku konfiguraycjnym [TYP POMIARU: instances || percentages]";
+    // }
     // Zakonczenie programu
     std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
     getchar(); 
