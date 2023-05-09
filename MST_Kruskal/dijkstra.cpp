@@ -73,39 +73,55 @@ void save_to_csv(long elapsed_time, int range, const std::string& filename) {
     outfile << elapsed_time << ";" << range << std::endl; 
 }
 
-void dijkstra(const vector<vector<int>>& graph, vector<int>& distances) {
+void dijkstra(const vector<vector<int>>& graph, vector<int>& distances, vector<int>& parents, int source) {
     int n = graph.size();
     vector<bool> visited(n, false);
 
-    // Inicjalizacja distances[] jako maksymalnych wartości INT_MAX.
     for (int i = 0; i < n; i++) {
         distances[i] = INT_MAX;
     }
-    // Ustawienie odleglosci wierzchołka źródłowego na 0.
-    distances[0] = 0;
+    
+    distances[source] = 0;
+    parents[source] = -1;
 
-    // Pętla wykonująca relaksację n - 1 razy.
     for (int i = 0; i < n - 1; i++) {
         int u = -1;
-        // Znajdowanie wierzchołka o najmniejszej odleglosci, który nie został jeszcze odwiedzony.
         for (int j = 0; j < n; j++) {
             if (!visited[j] && (u == -1 || distances[j] < distances[u])) {
                 u = j;
             }
         }
-        // Jeżeli odleglosc do wszystkich wierzchołków jest równy nieskończoności, przerywamy działanie algorytmu.
+
         if (distances[u] == INT_MAX) {
             break;
         }
         visited[u] = true;
-        // Relaksacja wszystkich sąsiadów wierzchołka u.
+
         for (int v = 0; v < n; v++) {
             if (graph[u][v] > 0 && !visited[v]) {
-                distances[v] = min(distances[v], distances[u] + graph[u][v]);
+                if (distances[u] + graph[u][v] < distances[v]) {
+                    distances[v] = distances[u] + graph[u][v];
+                    parents[v] = u;
+                }
             }
         }
     }
 }
+
+void printShortestPath(const vector<int>& parents, int destination) {
+    vector<int> path;
+    cout << "Najkrotsza sciezka do "<<destination + 1<<": ";
+    while (destination != -1) {
+        path.push_back(destination);
+        destination = parents[destination];
+    }
+    reverse(path.begin(), path.end());
+    for (int v : path) {
+        cout << v + 1 << " ";
+    }
+    cout << endl;
+}
+
 int main() {
     // Rozpoczecie programu
     std::cout << "Nacisnij [ENTER] aby rozpoczac..." << std::endl;
@@ -137,14 +153,26 @@ int main() {
     // vector<vector<int>> matrix = generateDirectedMatrix(max_nodes);
     // saveMatrixToFile(matrix, "matrixDijkstra.txt");
     ifstream infile("matrixDijkstraTest.txt");
-    vector<vector<int>> graph = read_matrix(max_nodes, infile);
-    int n = graph.size();
+    // vector<vector<int>> graph = read_matrix(max_nodes, infile);
+    int n = 5; 
+     vector<vector<int>> graph(n, vector<int>(n, 0));  // initialize graph with 0 weights
+    graph[0][1] = 3;
+    graph[0][4] = 5;
+    graph[1][2] = 2;
+    graph[2][1] = 7;
+    graph[2][3] = 1;
+    graph[3][0] = 4;
+    graph[4][3] = 6;
+
     vector<int> distances(n, INT_MAX);
-    dijkstra(graph, distances);
+    vector<int> parents(n);
+    dijkstra(graph, distances, parents, 0);
+    // printShortestPath(parents, 2);
 
     cout << "Najkrotsza droga od zrodla S(0):\n";
-    for (int i = 1; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         cout << "0 -> " << i << " Waga: " << distances[i] << "\n";
+        printShortestPath(parents, i);
     }
 
     // Zakonczenie programu
