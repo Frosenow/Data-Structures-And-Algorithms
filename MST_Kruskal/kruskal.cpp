@@ -113,7 +113,7 @@ void kruskal(int n) {
 }
 
 
-void read_matrix(int n, ifstream& infile) {
+vector<vector<int>> read_matrix(int n, ifstream& infile) {
     // Odczyt macierzy
     vector<vector<int>> graph(n, vector<int>(n));
     for (int i = 0; i < n; i++) {
@@ -131,6 +131,7 @@ void read_matrix(int n, ifstream& infile) {
         infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
         // std::cout<<std::endl;
     }
+    return graph;
 }
 
 void save_to_csv(long elapsed_time, int range, const std::string& filename) {
@@ -208,14 +209,35 @@ int main() {
     // int nodes = stoi(config["nodes"]);
     // read_matrix(nodes, infile);
     // kruskal(nodes);
+    char choice;
+    cout<<"Wygenerowac macierz? [T/N]"<<endl; 
+    cin>> choice; 
+    if(choice == 'T') {
+        vector<vector<int>> matrix = generateMatrix(max_nodes);
+        saveMatrixToFile(matrix, input_file);
+    } else if(choice == 'N') {
+        cout<<"Macierz nie zostala wygenerowana, szukanie pliku lokalnego..."<<endl; 
+    } else {
+        cout<<"Bledny wybor..."<<endl;
+        std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
+        getchar();  
+        return 0;
+    }
 
-    vector<vector<int>> matrix = generateMatrix(max_nodes);
-    saveMatrixToFile(matrix, input_file);
+    ifstream infile(input_file);
+
+    if(infile.good()){
+        cout<<"Plik "<< input_file << " został znaleziony\n";
+    } else {
+        cout<<"Plik "<< input_file << " nie zostal znaleziony\n";
+        std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
+        getchar(); 
+        return 0; 
+    }
     if(test_type == "instances"){
 
         // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
         // Odczyt danych wejsciowych
-        ifstream infile(input_file);
         perform_tests_instances(range_size, ranges, input_file);
 
     } else if(test_type == "percentages"){
@@ -223,6 +245,7 @@ int main() {
         // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
         const string input_file_copy = "matrixCopy.txt";
         // Utworzenie kopii, poniewaz usuwanie krawedzi jest operacja zmieniajaca macierz
+        vector<vector<int>> matrix = read_matrix(max_nodes, infile);
         saveMatrixToFile(matrix, input_file_copy);
         for(int i = 0; i < range_size_percentages; i++){
             cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;

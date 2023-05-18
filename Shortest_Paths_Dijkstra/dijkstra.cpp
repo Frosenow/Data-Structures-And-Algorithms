@@ -157,27 +157,17 @@ int main() {
     // vector<vector<int>> matrix = generateDirectedMatrix(max_nodes);
     // saveMatrixToFile(matrix, "matrixDijkstra.txt");
     ifstream infile("matrixDijkstraTest.txt");
-    // vector<vector<int>> graph = read_matrix(max_nodes, infile);
-    int n = 5; 
-     vector<vector<int>> graph(n, vector<int>(n, 0));  // initialize graph with 0 weights
-    graph[0][1] = 3;
-    graph[0][4] = 5;
-    graph[1][2] = 2;
-    graph[2][1] = 7;
-    graph[2][3] = 1;
-    graph[3][0] = 4;
-    graph[4][3] = 6;
+    vector<vector<int>> graph = read_matrix(max_nodes, infile);
 
-    vector<int> distances(n, INT_MAX);
-    vector<int> parents(n);
+    vector<int> distances(max_nodes, INT_MAX);
+    vector<int> parents(max_nodes);
     
     // Nodes indexed from 0 in graph
-    int source = 0;
+    int source = stoi(config["source_node"]);
     dijkstra(graph, distances, parents, source);
-    // printShortestPath(parents, 2);
 
     cout << "Najkrotsza droga od zrodla " << source + 1 << ":\n";
-    for (int i = 1; i < n; i++) {
+    for (int i = 1; i < max_nodes; i++) {
         printShortestPath(parents, i, source + 1, distances[i]);
     }
 
