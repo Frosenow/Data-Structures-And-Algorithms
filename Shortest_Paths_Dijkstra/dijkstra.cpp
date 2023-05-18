@@ -56,7 +56,7 @@ vector<vector<int>> read_matrix(int n, ifstream& infile) {
     return graph;
 }
 
-void save_to_csv(long elapsed_time, int range, const std::string& filename) {
+void save_to_csv(double elapsed_time, int range, const std::string& filename) {
     // Otwarcie pliku w trybie append
     std::ofstream outfile(filename, std::ios::app); 
     if (!outfile) {
@@ -126,6 +126,78 @@ void printShortestPath(const vector<int>& parents, int destination, int source, 
     cout << endl;
 }
 
+void perform_tests_instances(int range_size, vector<int> ranges, string input_file, unordered_map<string, string> config, int num_tests) {
+    for (int i = 0; i < range_size; i++) {
+        int nodes = ranges[i];
+        ifstream infile(input_file);
+        vector<vector<int>> graph = read_matrix(nodes, infile);
+        vector<int> distances(nodes, INT_MAX);
+        vector<int> parents(nodes);
+
+        // Nodes indexed from 0 in graph
+        int source = stoi(config["source_node"]);
+
+        std::cout << "Rozmiar macierzy: " << ranges[i] << "x" << ranges[i] << std::endl;
+
+        double total_elapsed_time = 0.0;
+
+        for (int test = 0; test < num_tests; test++) {
+            auto start = std::chrono::high_resolution_clock::now();
+            dijkstra(graph, distances, parents, source);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+            total_elapsed_time += elapsed_time.count();
+        }
+
+        double average_elapsed_time = total_elapsed_time / num_tests;
+
+        cout << "Average time over " << num_tests << " tests:\n";
+        cout << "Najkrotsza droga od zrodla " << source + 1 << ":\n";
+        for (int i = 1; i < nodes; i++) {
+            printShortestPath(parents, i, source + 1, distances[i]);
+        }
+        std::cout << "Czas obliczen (average): " << average_elapsed_time << "ms" << std::endl;
+        std::cout << std::endl;
+        save_to_csv(average_elapsed_time, nodes, "output_instances.csv");
+    }
+}
+
+
+void perform_tests_percentages(string input_file, int max_nodes, unordered_map<string, string> config, int num_tests) {
+    int nodes = max_nodes;
+    ifstream infile(input_file);
+    vector<vector<int>> graph = read_matrix(nodes, infile);
+    vector<int> distances(nodes, INT_MAX);
+    vector<int> parents(nodes);
+
+    // Nodes indexed from 0 in graph
+    int source = stoi(config["source_node"]);
+
+    double total_elapsed_time = 0.0;
+
+    for (int test = 0; test < num_tests; test++) {
+        auto start = std::chrono::high_resolution_clock::now();
+        dijkstra(graph, distances, parents, source);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        total_elapsed_time += elapsed_time.count();
+    }
+
+    double average_elapsed_time = total_elapsed_time / num_tests;
+
+    cout << "Sredni czas po " << num_tests << " testach:\n";
+    cout << "Najkrotsza droga od zrodla " << source + 1 << ":\n";
+    for (int i = 1; i < nodes; i++) {
+        printShortestPath(parents, i, source + 1, distances[i]);
+    }
+    std::cout << "Czas obliczen (srednia): " << average_elapsed_time << "ms" << std::endl;
+    std::cout << std::endl;
+    save_to_csv(average_elapsed_time, nodes, "output_percentages.csv");
+}
+
+
 int main() {
     // Rozpoczecie programu
     std::cout << "Nacisnij [ENTER] aby rozpoczac..." << std::endl;
@@ -137,6 +209,8 @@ int main() {
     string input_file = config["input_file"];
     string test_type = config["test"];
     int max_nodes = stoi(config["max_nodes"]);
+    int nodes = stoi(config["nodes"]);
+    int num_of_measurements = stoi(config["num_of_measurements"]);
 
     vector<int> ranges;
     istringstream iss(config["ranges"]);
@@ -153,24 +227,41 @@ int main() {
     int range_size = stoi(config["range_size"]);
     int range_size_percentages = stoi(config["range_size_percentages"]);
 
-    // Funkcja do testowania z plikiem matrixDijkstra.txt
-    // vector<vector<int>> matrix = generateDirectedMatrix(max_nodes);
-    // saveMatrixToFile(matrix, "matrixDijkstra.txt");
-    ifstream infile("matrixDijkstraTest.txt");
-    vector<vector<int>> graph = read_matrix(max_nodes, infile);
 
-    vector<int> distances(max_nodes, INT_MAX);
-    vector<int> parents(max_nodes);
-    
-    // Nodes indexed from 0 in graph
-    int source = stoi(config["source_node"]);
-    dijkstra(graph, distances, parents, source);
+    ifstream infile(input_file);
 
-    cout << "Najkrotsza droga od zrodla " << source + 1 << ":\n";
-    for (int i = 1; i < max_nodes; i++) {
-        printShortestPath(parents, i, source + 1, distances[i]);
+    if(infile.good()){
+        cout<<"Plik "<< input_file << " został znaleziony\n";
+    } else {
+        cout<<"Plik "<< input_file << " nie zostal znaleziony\n";
+        std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
+        getchar(); 
+        return 0; 
     }
+    if(test_type == "instances"){
 
+        // ********* POMIARY DLA KOLEJNYCH ROZMIAROW INSTANCJI **************
+        // Odczyt danych wejsciowych
+        perform_tests_instances(range_size, ranges, input_file, config, num_of_measurements);
+
+    } else if(test_type == "percentages"){
+
+        // ********* POMIARY DLA KOLEJNO USUWANYCH KRAWEDZI **************
+        const string input_file_copy = "matrixCopy.txt";
+        // Utworzenie kopii, poniewaz usuwanie krawedzi jest operacja zmieniajaca macierz
+        vector<vector<int>> matrix = read_matrix(max_nodes, infile);
+        saveMatrixToFile(matrix, input_file_copy);
+        for(int i = 0; i < range_size_percentages; i++){
+            cout<<"Pomiar dla usunietych "<< percentages[i]<<"% "<<"krawedzi (przy zachowaniu spojnosci grafu)"<<endl;
+            ifstream infile(input_file_copy);
+            perform_tests_percentages(input_file_copy, max_nodes, config, num_of_measurements);
+            removeEdges(matrix, percentages[i]);
+            saveMatrixToFile(matrix, input_file_copy);
+        }
+
+    } else { 
+        std::cout<<"Wybrano niepoprawny typ pomiary w pliku konfiguraycjnym [TYP POMIARU: instances || percentages]";
+    }
     // Zakonczenie programu
     std::cout << "Nacisnij [ENTER] aby zakonczyc..." << std::endl;
     getchar(); 
