@@ -152,12 +152,12 @@ void perform_tests_instances(int range_size, vector<int> ranges, string input_fi
 
         double average_elapsed_time = total_elapsed_time / num_tests;
 
-        cout << "Average time over " << num_tests << " tests:\n";
+        cout << "Sredni czas pomiaru " << num_tests << " tests:\n";
         cout << "Najkrotsza droga od zrodla " << source + 1 << ":\n";
         for (int i = 1; i < nodes; i++) {
             printShortestPath(parents, i, source + 1, distances[i]);
         }
-        std::cout << "Czas obliczen (average): " << average_elapsed_time << "ms" << std::endl;
+        std::cout << "Czas obliczen (sredni): " << average_elapsed_time << "ms" << std::endl;
         std::cout << std::endl;
         save_to_csv(average_elapsed_time, nodes, "output_instances.csv");
     }
