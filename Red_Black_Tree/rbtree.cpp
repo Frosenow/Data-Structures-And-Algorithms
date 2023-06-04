@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <algorithm>
 #include <chrono>
+#include <vector>
+#include <sstream> 
 
 using namespace std;
 
@@ -406,7 +408,13 @@ void TRBTree::removeRBT ( RBTNode * X )
 }
 
 // Odczyt danych z pliku .txt
-void buildRBTFromFile(string input_file, TRBTree* RBT){
+void buildRBTFromFile(const vector<int>& data, TRBTree* RBT){
+    for(int num : data){
+        RBT->insertRBT(num);
+    }
+}
+
+void buildRBT(string input_file, TRBTree* RBT){
     ifstream inputFile(input_file);
     int value;
     while (inputFile >> value) {
@@ -415,35 +423,104 @@ void buildRBTFromFile(string input_file, TRBTree* RBT){
     inputFile.close();
 }
 
+// Wyluskanie tablicy instancji z pliku konfiguracyjnego 
+vector<int> get_instances(string config){
+    vector<int> instances; 
+    string instance; 
+    stringstream ss(config);
+    while(getline(ss, instance, ',')){
+        instances.push_back(stoi(instance));
+    }
+    return instances; 
+}
+
+// Zapisanie otrzymanych danych
+void save_to_file(string outputfile_name, vector<int>& instances, int num_of_instances, vector<double>& measuredTimes) {
+    ofstream outputFile(outputfile_name);
+    outputFile << "Rozmiar instancji" << ";" << "Czas budowy drzewa [ms]" << endl;
+    for (int i = 0; i < num_of_instances; i++) {
+        outputFile << instances[i] << ";" << measuredTimes[i] << endl;
+    }
+    outputFile.close();
+}
+
+void perform_measurements(int num_of_instances, vector<int>  instances, vector<int> data, vector<double>& measuredTimes, int num_of_measurements){
+    for(int i = 0; i < num_of_instances; i++) {
+      vector<int> instance(data.begin(), data.begin() + instances[i]);
+      TRBTree* RBT = new TRBTree;
+      auto total_duration = 0; 
+      // Pomiar budowy RDT
+      for(int i = 0; i < num_of_measurements; i++){
+        double total_elapsed_time = 0.0;
+        auto start = std::chrono::high_resolution_clock::now();
+        buildRBTFromFile(instance, RBT);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        total_duration += elapsed_time;
+      }
+      delete RBT; 
+      measuredTimes.push_back(total_duration/num_of_measurements);
+      // Koniec pomiaru
+      std::cout << "Czas budowy RBT: " << double(total_duration/num_of_measurements) << "ms " << "dla instancji: "<< instances[i] <<std::endl;
+    }
+}
+
 int main()
 {
     // Odczyt pliku konfiguracyjnego 
     unordered_map<string, string> config = parse_config_file("config.ini");
     string input_file = config["input_file"];
+    string output_file = config["output_file"];
 
+    // Uzyskanie informacji o ilosci elementow z tablicy instancji problemu
+    int num_of_instances = stoi(config["num_of_instances"]);
+
+    // Uzyskanie tablicy z instancjami problemu 
+    vector<int> instances = get_instances(config["instances"]);
+
+    // Ilosc powtorzen pomiarow dla wiekszje dokladnosci 
+    int num_of_measurements = stoi(config["num_of_instances"]);
+
+    // Zmienna do przechowywania mierzonych czasow
+    vector<double> measuredTimes;
+
+    // Odczyt danych z pliku .txt
+    ifstream inputFile(input_file);
+    vector<int> data;
+    int num;
+    while (inputFile >> num) {
+        data.push_back(num);
+    }
+    inputFile.close();
+
+    // Inicjalizacja drzewa RB 
     TRBTree* RBT = new TRBTree;
-
-    // Pomiar budowy RDT
-    double total_elapsed_time = 0.0;
-    auto start = std::chrono::high_resolution_clock::now();
-    buildRBTFromFile(input_file, RBT);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "Czas budowy RBT: " << elapsed_time.count() << "ms" << std::endl;
-    // Koniec pomiaru
 
     int choice;
     while (true) {
         cout << "Menu:" << endl;
+        cout << "0. Buduj drzewo" << endl; 
         cout << "1. Dodaj element" << endl;
         cout << "2. Usun element" << endl;
         cout << "3. Wyszukaj element" << endl;
         cout << "4. Wyrysuj drzewo" << endl;
+        cout << "6. Wykonaj pomiary budowy drzewa" << endl; 
         cout << "5. Wyjdz" << endl;
         cout << "Wprowadz wybor: ";
         cin >> choice;
+        cout<<endl;
 
         switch (choice) {
+            case 0: {
+                // Pomiar budowy RDT
+               double total_elapsed_time = 0.0;
+               auto start = std::chrono::high_resolution_clock::now();
+               buildRBT(input_file, RBT);
+               auto end = std::chrono::high_resolution_clock::now();
+               auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+               std::cout << "Czas budowy RBT: " << elapsed_time << "ms" << std::endl;
+               break;
+            }
             case 1: {
                 int element;
                 cout << "Wprowadz element do dodania: ";
@@ -483,6 +560,11 @@ int main()
             case 5:
                 delete RBT;
                 return 0;
+            case 6: {
+              perform_measurements(num_of_instances, instances, data, measuredTimes, num_of_measurements);
+              save_to_file(output_file, instances, num_of_instances, measuredTimes);
+              break;
+            }
             default:
                 cout << "Zly wybor. Sprobuj ponownie." << endl;
                 break;
