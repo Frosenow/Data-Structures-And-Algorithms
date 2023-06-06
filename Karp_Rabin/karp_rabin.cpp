@@ -70,9 +70,9 @@ void saveTextWithMatches(const string& text, const vector<int>& matches, const s
 }
 
 int main() {
-    string pattern;
+    string pattern; 
     cout << "Wprowadz wzorzec: ";
-    cin >> pattern;
+    getline(cin, pattern);
 
     string filename;
     cout << "Wprowadz nazwe pliku: ";
