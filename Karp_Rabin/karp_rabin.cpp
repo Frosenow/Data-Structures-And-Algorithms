@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <math.h>
+#include <chrono>
 
 using namespace std;
 
@@ -87,7 +88,10 @@ int main() {
     string text((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
     file.close();
 
+    auto start = std::chrono::high_resolution_clock::now();
     vector<int> matches = findMatches(pattern, text);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     if (matches.empty()) {
         cout << "Brak dopasowania do wzorca." << endl;
@@ -101,6 +105,7 @@ int main() {
         }
         cout << endl;
         cout << "Plik zapisany z zaznaczonymi dopasowaniami: " << outputFilename << endl;
+        cout << "Czas wyszukiwania: " << elapsed_time << "ms" << endl; 
     }
 
     return 0;
